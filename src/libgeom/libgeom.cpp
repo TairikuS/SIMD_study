@@ -9,6 +9,13 @@ void copy_vector4_array(float* dst, const float* src, int num)
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
+
+	for (int i = 0; i < num * 4; i += 4)
+	{
+		__m128 pd = _mm_load_ps(src + i);
+		_mm_store_ps(dst+i,pd);
+	}
+	
 #else
 	float* pd = dst;
 	const float* ps = src;
@@ -30,6 +37,15 @@ void add_vector4_array(float* dst, const float* src0, const float* src1, int num
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
+	for (int i = 0; i < num * 4; i += 4)
+	{
+		__m128 ps0 = _mm_load_ps(src0 + i);
+		__m128 ps1 = _mm_load_ps(src1 + i);
+
+		__m128 pd = _mm_add_ps(ps0, ps1);
+
+		_mm_store_ps((dst + i), pd);
+	}
 #else
 	float* pd = dst;
 	const float* ps0 = src0;
@@ -53,6 +69,30 @@ void apply_matrix_vector4_array(float* dst, const float* src, const float* matri
 {
 #if 1
 	// ToDo: SIMD計算を使って実装して下さい
+
+	for (int i = 0; i < num * 4; i += 4)
+	{
+		__m128 ps = _mm_load_ps(src + i);
+		__m128 pd;
+		float data[4];
+		float sum[4] = {0};
+		
+		__m128 a[4];
+
+		for (int j = 0; j < 4; j++)
+		{	
+			a[j] = _mm_mul_ps(_mm_load_ps(matrix + j * 4), ps);
+			_mm_store_ps(data, a[j]);
+
+			for (int k = 0; k < 4; k++)
+			{
+				sum[j] += data[k];
+			}
+		}
+
+		pd = _mm_load_ps(sum);
+		_mm_store_ps((dst + i), pd);
+	}
 #else
 	float* pd = dst;
 	const float* ps = src;
